@@ -13,7 +13,7 @@ import {
     EyeOff,
     List
 } from "lucide-react";
-import axios from "axios";
+import api from "../services/api"; // ✅ FIX: axios hatao, api use karo
 
 export default function RegisterPage() {
 
@@ -46,7 +46,7 @@ export default function RegisterPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        console.log("FORM DATA:", formData); // 🔥 DEBUG
+        console.log("FORM DATA:", formData);
 
         if (!role) return alert("Please select your role");
 
@@ -63,7 +63,7 @@ export default function RegisterPage() {
             return alert("Please accept Terms & Conditions");
 
         try {
-            const res = await axios.post("http://localhost:5000/api/auth/register", {
+            const res = await api.post("/auth/register", {   // ✅ FIX HERE
                 name: formData.name,
                 email: formData.email,
                 phone: formData.phone,
@@ -87,8 +87,8 @@ export default function RegisterPage() {
     };
 
     return (
+        // (UI same rahega — no change needed)
         <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center px-4">
-
             <div className="flex items-center gap-2 mb-6 text-green-800">
                 <Recycle size={26} />
                 <h1 className="text-2xl font-bold">EcoMarket</h1>
@@ -102,38 +102,26 @@ export default function RegisterPage() {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
 
-                    {/* ROLE */}
                     <div className="grid grid-cols-2 gap-3">
-                        <RoleCard
-                            icon={<Store size={18} />}
-                            title="Seller"
-                            active={role === "seller"}
-                            onClick={() => setRole("seller")}
-                        />
+                        <RoleCard icon={<Store size={18} />} title="Seller"
+                            active={role === "seller"} onClick={() => setRole("seller")} />
 
-                        <RoleCard
-                            icon={<Factory size={18} />}
-                            title="Processing"
-                            active={role === "processing"}
-                            onClick={() => setRole("processing")}
-                        />
+                        <RoleCard icon={<Factory size={18} />} title="Processing"
+                            active={role === "processing"} onClick={() => setRole("processing")} />
                     </div>
 
                     <Input name="name" placeholder="Full Name" onChange={handleChange} />
 
                     {role && (
-                        <Input
-                            name="businessName"
+                        <Input name="businessName"
                             placeholder={role === "seller" ? "Shop Name" : "Company Name"}
-                            onChange={handleChange}
-                        />
+                            onChange={handleChange} />
                     )}
 
-                    {/* ✅ FIXED CATEGORY */}
                     {role === "processing" && (
                         <select
                             name="category"
-                            value={formData.category}   // ✅ IMPORTANT FIX
+                            value={formData.category}
                             onChange={handleChange}
                             className="w-full border p-2 rounded"
                             required
@@ -169,14 +157,11 @@ export default function RegisterPage() {
     );
 }
 
-/* Small Components */
+/* Components same */
 function RoleCard({ icon, title, active, onClick }) {
     return (
-        <button
-            type="button"
-            onClick={onClick}
-            className={`p-3 border rounded ${active ? "bg-green-100" : ""}`}
-        >
+        <button type="button" onClick={onClick}
+            className={`p-3 border rounded ${active ? "bg-green-100" : ""}`}>
             {icon} {title}
         </button>
     );
