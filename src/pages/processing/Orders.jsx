@@ -1,29 +1,28 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
-import { CheckCircle, Truck } from "lucide-react";
 
 export default function Orders({ activeTab }) {
 
-    const [orders, setOrders] = useState([]);
+    const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-
-        fetchOrders();
-
+        fetchData();
     }, []);
 
-    const fetchOrders = async () => {
+    const fetchData = async () => {
 
         try {
 
-            const res = await api.get("/orders/my");
+            const res = await api.get("/products/processing");
 
-            setOrders(res.data);
+            console.log("DATA:", res.data);
+
+            setData(res.data);
 
         } catch (err) {
 
-            console.error("Failed to fetch orders");
+            console.error("Fetch failed");
 
         } finally {
 
@@ -33,132 +32,84 @@ export default function Orders({ activeTab }) {
 
     };
 
-    const acceptOrder = async (id) => {
-
-        try {
-
-            await api.put(`/orders/request-pickup/${id}`);
-
-            fetchOrders();
-
-        } catch (err) {
-
-            console.error("Accept failed");
-
-        }
-
-    };
-
-    const markPicked = async (id) => {
-
-        try {
-
-            await api.put(`/orders/picked/${id}`);
-
-            fetchOrders();
-
-        } catch (err) {
-
-            console.error("Pick failed");
-
-        }
-
-    };
-
-    const filteredOrders = orders.filter(o => {
-
-        if (activeTab === "available") return o.status === "PLACED";
-        if (activeTab === "accepted") return o.status === "ACCEPTED";
-        if (activeTab === "picked") return o.status === "PICKED";
-
-        return true;
-
-    });
+    /* ================= LOADING ================= */
 
     if (loading) {
-
         return (
-
-            <div className="bg-white p-6 rounded-xl shadow">
-                Loading orders...
+            <div className="bg-white p-6 rounded-xl shadow text-center">
+                Loading products...
             </div>
-
         );
-
     }
+
+    /* ================= UI ================= */
 
     return (
 
-        <div className="bg-white p-6 rounded-xl shadow space-y-4">
+        <div className="bg-white p-6 rounded-xl shadow space-y-6">
 
-            {filteredOrders.length === 0 && (
-
-                <p className="text-gray-500">
-                    No orders found
+            {data.length === 0 && (
+                <p className="text-gray-500 text-center">
+                    No products available for your category
                 </p>
-
             )}
 
-            {filteredOrders.map(order => (
+            {data.map(item => (
 
                 <div
-                    key={order._id}
-                    className="border rounded-lg p-4 flex justify-between items-center"
+                    key={item._id}
+                    className="border rounded-xl p-5 hover:shadow-md transition"
                 >
 
-                    <div>
+                    {/* CATEGORY */}
+                    <p className="font-semibold text-green-900 text-lg">
+                        {item.category?.toUpperCase()}
+                    </p>
 
-                        <p className="font-semibold text-green-900">
-                            {order.productId?.category}
-                        </p>
+                    {/* PRICE */}
+                    <p className="text-sm text-gray-600 mt-1">
+                        Total Price: <span className="font-medium">₹{item.totalPrice || 0}</span>
+                    </p>
 
-                        <p className="text-sm text-gray-600">
-                            Seller: {order.sellerId?.businessName}
-                        </p>
+                    {/* ITEMS COUNT */}
+                    <p className="text-sm text-gray-600 mb-3">
+                        Total Items: {item.products?.length || 0}
+                    </p>
 
-                        <p className="text-sm text-gray-600">
-                            Products: {order.productId?.products?.length}
-                        </p>
+                    {/* ================= ITEM DETAILS ================= */}
 
-                    </div>
+                    <div className="space-y-3">
 
-                    <div className="flex items-center gap-3">
+                        {item.products?.map((prod, index) => (
 
-                        {order.status === "PLACED" && (
-
-                            <button
-                                onClick={() => acceptOrder(order._id)}
-                                className="flex items-center gap-1 bg-blue-100 text-blue-800 px-3 py-1 rounded"
+                            <div
+                                key={index}
+                                className="bg-gray-50 p-3 rounded-lg border"
                             >
 
-                                <CheckCircle size={16} />
-                                Accept
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
 
-                            </button>
+                                    <p><b>Name:</b> {prod.name || "-"}</p>
 
-                        )}
+                                    <p><b>Brand:</b> {prod.brand || "-"}</p>
 
-                        {order.status === "ACCEPTED" && (
+                                    <p><b>Qty:</b> {prod.quantity || 0}</p>
 
-                            <button
-                                onClick={() => markPicked(order._id)}
-                                className="flex items-center gap-1 bg-green-100 text-green-800 px-3 py-1 rounded"
-                            >
+                                    <p><b>Weight:</b> {prod.weightPerUnit || 0} g</p>
 
-                                <Truck size={16} />
-                                Picked
+                                    <p><b>MRP:</b> ₹{prod.mrp || 0}</p>
 
-                            </button>
+                                    <p><b>Buyer Pay:</b> ₹{prod.buyerPay || 0}</p>
 
-                        )}
+                                    {prod.uan && (
+                                        <p><b>UAN:</b> {prod.uan}</p>
+                                    )}
 
-                        {order.status === "PICKED" && (
+                                </div>
 
-                            <span className="text-green-700 font-semibold">
-                                Completed
-                            </span>
+                            </div>
 
-                        )}
+                        ))}
 
                     </div>
 

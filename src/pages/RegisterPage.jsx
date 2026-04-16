@@ -46,6 +46,8 @@ export default function RegisterPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        console.log("FORM DATA:", formData); // 🔥 DEBUG
+
         if (!role) return alert("Please select your role");
 
         if (!formData.businessName)
@@ -73,7 +75,7 @@ export default function RegisterPage() {
             });
 
             alert(res.data.message);
-            navigate("/verify-otp");
+            navigate("/login");
 
         } catch (error) {
             if (error.response) {
@@ -92,194 +94,107 @@ export default function RegisterPage() {
                 <h1 className="text-2xl font-bold">EcoMarket</h1>
             </div>
 
-            <p className="text-green-600 mb-8 text-sm">
-                Create your account and start today
-            </p>
-
             <div className="bg-white w-full max-w-md p-8 rounded-2xl shadow-lg">
 
-                <h2 className="text-lg font-semibold text-green-900 mb-1">
+                <h2 className="text-lg font-semibold text-green-900 mb-5">
                     Register
                 </h2>
-
-                <p className="text-sm text-gray-500 mb-5">
-                    Choose your role and fill your details
-                </p>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
 
                     {/* ROLE */}
-                    <div>
-                        <p className="text-sm font-medium mb-2">I am a</p>
+                    <div className="grid grid-cols-2 gap-3">
+                        <RoleCard
+                            icon={<Store size={18} />}
+                            title="Seller"
+                            active={role === "seller"}
+                            onClick={() => setRole("seller")}
+                        />
 
-                        <div className="grid grid-cols-2 gap-3">
-                            <RoleCard
-                                icon={<Store size={18} />}
-                                title="Seller"
-                                sub="Shop Owner"
-                                active={role === "seller"}
-                                onClick={() => setRole("seller")}
-                            />
-
-                            <RoleCard
-                                icon={<Factory size={18} />}
-                                title="Processing Unit"
-                                sub="Industry / Factory"
-                                active={role === "processing"}
-                                onClick={() => setRole("processing")}
-                            />
-                        </div>
+                        <RoleCard
+                            icon={<Factory size={18} />}
+                            title="Processing"
+                            active={role === "processing"}
+                            onClick={() => setRole("processing")}
+                        />
                     </div>
 
-                    <Input icon={<User size={18} />} name="name" placeholder="Full Name" onChange={handleChange} />
+                    <Input name="name" placeholder="Full Name" onChange={handleChange} />
 
                     {role && (
                         <Input
-                            icon={role === "seller" ? <Store size={18} /> : <Factory size={18} />}
                             name="businessName"
                             placeholder={role === "seller" ? "Shop Name" : "Company Name"}
                             onChange={handleChange}
                         />
                     )}
 
-                    {/* CATEGORY – ONLY FOR PROCESSING UNIT */}
+                    {/* ✅ FIXED CATEGORY */}
                     {role === "processing" && (
-                        <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2">
-                            <div className="mr-2 text-green-700">
-                                <List size={18} />
-                            </div>
-                            <select
-                                name="category"
-                                required
-                                onChange={handleChange}
-                                className="w-full outline-none bg-transparent"
-                            >
-                                <option value="">Select Category</option>
-                                <option value="glass">Food</option>
-                                <option value="paper">Medicine</option>
-                                <option value="organic">Cosmatics</option>
-                                <option value="plastic">Plastic</option>
-                                <option value="metal">Clothes</option>
-                            </select>
-                        </div>
+                        <select
+                            name="category"
+                            value={formData.category}   // ✅ IMPORTANT FIX
+                            onChange={handleChange}
+                            className="w-full border p-2 rounded"
+                            required
+                        >
+                            <option value="">Select Category</option>
+                            <option value="food">Food</option>
+                            <option value="medicine">Medicine</option>
+                            <option value="cosmetics">Cosmetics</option>
+                            <option value="plastic">Plastic</option>
+                            <option value="clothes">Clothes</option>
+                        </select>
                     )}
 
-                    <Input icon={<Phone size={18} />} name="phone" placeholder="Phone Number" onChange={handleChange} />
-                    <Input icon={<MapPin size={18} />} name="address" placeholder="Address" onChange={handleChange} />
-                    <Input icon={<Mail size={18} />} name="email" placeholder="Email" type="email" onChange={handleChange} />
+                    <Input name="phone" placeholder="Phone" onChange={handleChange} />
+                    <Input name="address" placeholder="Address" onChange={handleChange} />
+                    <Input name="email" placeholder="Email" onChange={handleChange} />
 
-                    <PasswordInput icon={<Lock size={18} />} name="password" placeholder="Password" onChange={handleChange} />
-                    <PasswordInput icon={<Lock size={18} />} name="confirmPassword" placeholder="Confirm Password" onChange={handleChange} />
+                    <PasswordInput name="password" placeholder="Password" onChange={handleChange} />
+                    <PasswordInput name="confirmPassword" placeholder="Confirm Password" onChange={handleChange} />
 
-                    <div className="flex items-center gap-2 text-sm">
+                    <label className="flex gap-2 text-sm">
                         <input type="checkbox" name="terms" onChange={handleChange} />
-                        <span>
-                            I accept the{" "}
-                            <button
-                                type="button"
-                                onClick={() => setShowTerms(true)}
-                                className="text-green-700 underline"
-                            >
-                                Terms and Conditions
-                            </button>
-                        </span>
-                    </div>
+                        Accept Terms
+                    </label>
 
-                    <button className="w-full bg-green-800 text-white py-3 rounded-full hover:bg-green-900 transition">
+                    <button className="w-full bg-green-800 text-white py-3 rounded-full">
                         Create Account
                     </button>
 
-                    <p className="text-center text-sm text-gray-600">
-                        Already have an account?{" "}
-                        <Link to="/login" className="text-green-700">
-                            Login here
-                        </Link>
-                    </p>
-
                 </form>
             </div>
-
-            <Link to="/" className="mt-6 text-green-700 text-sm">
-                ← Back to Home
-            </Link>
-
-            {showTerms && <Modal close={() => setShowTerms(false)} />}
         </div>
     );
 }
 
-/* Role Card */
-function RoleCard({ icon, title, sub, active, onClick }) {
+/* Small Components */
+function RoleCard({ icon, title, active, onClick }) {
     return (
         <button
             type="button"
             onClick={onClick}
-            className={`flex items-center gap-3 border rounded-lg p-3 transition
-            ${active ? "border-green-700 bg-green-50" : "border-gray-300"}`}
+            className={`p-3 border rounded ${active ? "bg-green-100" : ""}`}
         >
-            <div className="text-green-700">{icon}</div>
-            <div>
-                <p className="font-medium">{title}</p>
-                <span className="text-xs text-gray-500">{sub}</span>
-            </div>
+            {icon} {title}
         </button>
     );
 }
 
-/* Input */
-function Input({ icon, ...props }) {
-    return (
-        <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 focus-within:border-green-700">
-            <div className="mr-2 text-green-700">{icon}</div>
-            <input {...props} required className="w-full outline-none" />
-        </div>
-    );
+function Input(props) {
+    return <input {...props} className="w-full border p-2 rounded" required />;
 }
 
-/* Password Input */
-function PasswordInput({ icon, ...props }) {
-
+function PasswordInput({ ...props }) {
     const [show, setShow] = useState(false);
 
     return (
-        <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 focus-within:border-green-700">
-            <div className="mr-2 text-green-700">{icon}</div>
-
-            <input
-                {...props}
-                type={show ? "text" : "password"}
-                required
-                className="w-full outline-none"
-            />
-
+        <div className="flex border p-2 rounded">
+            <input {...props} type={show ? "text" : "password"} className="w-full" required />
             <button type="button" onClick={() => setShow(!show)}>
                 {show ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
-        </div>
-    );
-}
-
-/* Terms Modal */
-function Modal({ close }) {
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center">
-            <div className="bg-white max-w-md p-6 rounded-xl">
-                <h3 className="font-semibold mb-3">Terms & Conditions</h3>
-
-                <p className="text-sm text-gray-600">
-                    • Provide correct information <br />
-                    • Follow platform rules <br />
-                    • Fraud accounts will be suspended <br />
-                    • EcoMarket not responsible for disputes
-                </p>
-
-                <button
-                    onClick={close}
-                    className="mt-4 bg-green-800 text-white px-4 py-2 rounded"
-                >
-                    Close
-                </button>
-            </div>
         </div>
     );
 }
